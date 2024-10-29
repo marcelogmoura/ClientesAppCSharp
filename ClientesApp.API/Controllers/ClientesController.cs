@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ClientesApp.Domain.Dto;
+using ClientesApp.Domain.Interfaces.Services;
+using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClientesApp.API.Controllers
@@ -7,28 +10,123 @@ namespace ClientesApp.API.Controllers
     [ApiController]
     public class ClientesController : ControllerBase
     {
+        private readonly IClienteService _clienteService;
+        public ClientesController(IClienteService clienteService)
+        {
+            _clienteService = clienteService;
+        }
+
         [HttpPost]
-        public IActionResult Post()
+        [ProducesResponseType(typeof(ClienteResponseDto), 201)]
+        public IActionResult Post([FromBody] ClienteRequestDto dto)
         {
-            return Ok();
+            try
+            {
+                var response = _clienteService.Incluir(dto);
+                return StatusCode(201, response);
+            }
+            catch (ValidationException e)
+            {
+                var errors = e.Errors.Select(e => new
+                {
+                    Name = e.PropertyName,
+                    Error = e.ErrorMessage
+                });
+
+                return StatusCode(400, errors);
+            }
+            catch (ApplicationException e)
+            {
+                return StatusCode(422, new { e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { e.Message });
+            }
         }
 
-        [HttpPut]
-        public IActionResult Put()
+
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(ClienteResponseDto), 200)]
+        public IActionResult Put(Guid id, [FromBody]  ClienteRequestDto dto)
         {
-            return Ok();
+            try
+            {
+                var response = _clienteService.Alterar(id, dto);
+                return StatusCode(200, response);
+            }
+            catch (ValidationException e)
+            {
+                var errors = e.Errors.Select
+                    (e => new
+                    {
+                        Name = e.PropertyName,
+                        Error = e.ErrorMessage
+                    });
+
+                return StatusCode(400, errors);
+            }
+            catch (ApplicationException e)
+            {
+                return StatusCode(422, new { e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { e.Message });
+            }
         }
 
-        [HttpDelete]
-        public IActionResult Delete()
+        [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(ClienteResponseDto), 200)]
+        public IActionResult Delete(Guid id)
         {
-            return Ok();
+            try
+            {
+                var response = _clienteService.Excluir(id);
+                return StatusCode(200, response);
+            }
+            catch (ApplicationException e)
+            {
+                return StatusCode(422, new { e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { e.Message });
+            }
         }
 
         [HttpGet]
-        public IActionResult Get() 
+        [ProducesResponseType(typeof(List<ClienteResponseDto>), 200)]
+        public IActionResult GetAll()
         {
-            return Ok();
+            try
+            {
+                var response = _clienteService.Consultar();
+                return StatusCode(200, response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { e.Message });
+            }
+        }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ClienteResponseDto), 200)]
+        public IActionResult GetById(Guid id)
+        {
+            try
+            {
+                var response = _clienteService.ObterPorId(id);
+                return StatusCode(200, response);
+            }
+            catch (ApplicationException e)
+            {
+                return StatusCode(422, new { e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { e.Message });
+            }
         }
     }
 }
