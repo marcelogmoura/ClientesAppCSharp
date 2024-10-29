@@ -18,7 +18,7 @@ namespace ClientesApp.Domain.Validations
 
             RuleFor(c => c.Nome)
                 .NotEmpty().WithMessage("O nome do cliente é obrigatório")
-                .Length(2, 20).WithMessage("de 2 a 20 caracteres.");
+                .Length(2, 20).WithMessage("de 2 a 30 caracteres.");
 
             RuleFor(c => c.Email)
                 .NotEmpty().WithMessage("O email é obrigatório.")
